@@ -23,6 +23,9 @@ struct Opt {
     #[structopt(long, conflicts_with = "parameterized")]
     no_parameterized: bool,
 
+    #[structopt(long)]
+    pretty: bool,
+
     #[structopt(long = "type")]
     job_type: Option<String>,
 
@@ -85,5 +88,9 @@ fn main() {
         }
         flattened = serde_json::to_value(full_jobs).unwrap();
     }
-    println!("{}", serde_json::to_string(&flattened).unwrap());
+    if cmd.pretty {
+        println!("{}", serde_json::to_string_pretty(&flattened).unwrap());
+    } else {
+        println!("{}", serde_json::to_string(&flattened).unwrap());
+    }
 }
