@@ -1,5 +1,7 @@
+use jsonpath::Selector;
+use log::{debug, trace};
+use std::collections::HashMap;
 use structopt::StructOpt;
-use log::debug;
 
 mod nomad;
 
@@ -39,6 +41,14 @@ fn handle_negative_flags(flag_tuple: (bool, bool)) -> Option<bool> {
     }
 }
 
+fn build_paths(fields: Vec<String>) -> HashMap<String, Selector> {
+    let paths: HashMap<String, Selector> = fields
+        .iter()
+        .map(|s| (String::from(s), Selector::new(&format!("$.{}", s)).unwrap()))
+        .collect();
+    paths
+}
+
 fn main() {
     env_logger::init();
     let cmd = Opt::from_args();
@@ -46,12 +56,34 @@ fn main() {
     let parameterized = handle_negative_flags((cmd.parameterized, cmd.no_parameterized));
     debug!("{:#?}, {:#?}, {:#?}", cmd, periodic, parameterized);
     let client = nomad::get_client();
-    let server = nomad::Nomad{ client: client };
+    let server = nomad::Nomad { client };
     let jobs: Vec<nomad::Job> = match server.get_jobs() {
-        Ok(jobs_resp) => jobs_resp.into_iter().map(|job| {
-            server.get_job(&job.ID).unwrap()
-        }).collect(),
+        Ok(jobs_resp) => jobs_resp
+            .into_iter()
+            .map(|job| server.get_job(&job.ID).unwrap())
+            .collect(),
         Err(msg) => panic!(msg),
     };
-    println!("{:#?}", jobs);
+
+    let mut flattened = serde_json::to_value(&jobs).unwrap();
+    if !(&cmd.fields).is_empty() {
+        let paths = build_paths(cmd.fields);
+        let mut full_jobs: Vec<serde_json::Value> = Vec::new();
+        for job in jobs {
+            let mut job_view: serde_json::Map<String, serde_json::Value> = serde_json::Map::new();
+            for (path, selector) in &paths {
+                let job_json = serde_json::to_value(&job).unwrap();
+                let matches: Vec<&serde_json::Value> = selector.find(&job_json).collect();
+                if !matches.is_empty() {
+                    for matched in matches {
+                        trace!("Match: {}, {}", path, matched);
+                        job_view.insert(path.to_string(), matched.to_owned());
+                    }
+                }
+            }
+            full_jobs.push(serde_json::to_value(job_view).unwrap());
+        }
+        flattened = serde_json::to_value(full_jobs).unwrap();
+    }
+    println!("{}", serde_json::to_string(&flattened).unwrap());
 }
