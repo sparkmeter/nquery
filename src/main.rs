@@ -1,5 +1,5 @@
 use jsonpath::Selector;
-use log::{debug, trace};
+use log::trace;
 use std::collections::HashMap;
 use structopt::StructOpt;
 
@@ -32,7 +32,49 @@ struct Opt {
     #[structopt(short, long, number_of_values = 1)]
     fields: Vec<String>,
 
+    #[structopt(default_value = "")]
     job_name: String,
+}
+
+fn get_jobs(
+    name_filter: &str,
+    status_filter: Option<String>,
+    job_type_filter: Option<String>,
+    periodic_filter: Option<bool>,
+    parameterized_filter: Option<bool>,
+) -> Vec<nomad::Job> {
+    let client = nomad::get_client();
+    let server = nomad::Nomad { client };
+    let job_listing = server.get_jobs().unwrap();
+    job_listing
+        .into_iter()
+        .filter(|job| match periodic_filter {
+            Some(is_periodic) => is_periodic == job.Periodic.unwrap_or(false),
+            None => true,
+        })
+        .filter(|job| match parameterized_filter {
+            Some(is_parameterized) => is_parameterized == job.ParameterizedJob.unwrap_or(false),
+            None => true,
+        })
+        .filter(|job| {
+            job.ID
+                .to_lowercase()
+                .starts_with(&name_filter.to_lowercase())
+        })
+        .filter(|job| match &status_filter {
+            Some(status) => job.Status.eq_ignore_ascii_case(&status),
+            None => true,
+        })
+        .filter(|job| match &job_type_filter {
+            Some(job_type) => job.Type.eq_ignore_ascii_case(&job_type),
+            None => true,
+        })
+        .map(|job| server.get_job(&job.ID).unwrap())
+        .map(|job| {
+            trace!("Individual Job: {:#?}", job);
+            job
+        })
+        .collect()
 }
 
 fn handle_negative_flags(flag_tuple: (bool, bool)) -> Option<bool> {
@@ -57,17 +99,13 @@ fn main() {
     let cmd = Opt::from_args();
     let periodic = handle_negative_flags((cmd.periodic, cmd.no_periodic));
     let parameterized = handle_negative_flags((cmd.parameterized, cmd.no_parameterized));
-    debug!("{:#?}, {:#?}, {:#?}", cmd, periodic, parameterized);
-    let client = nomad::get_client();
-    let server = nomad::Nomad { client };
-    let jobs: Vec<nomad::Job> = match server.get_jobs() {
-        Ok(jobs_resp) => jobs_resp
-            .into_iter()
-            .map(|job| server.get_job(&job.ID).unwrap())
-            .collect(),
-        Err(msg) => panic!(msg),
-    };
-
+    let jobs: Vec<nomad::Job> = get_jobs(
+        &cmd.job_name,
+        cmd.status,
+        cmd.job_type,
+        periodic,
+        parameterized,
+    );
     let mut flattened = serde_json::to_value(&jobs).unwrap();
     if !(&cmd.fields).is_empty() {
         let paths = build_paths(cmd.fields);
