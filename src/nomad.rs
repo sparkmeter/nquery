@@ -1,7 +1,7 @@
+use log::trace;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
-use log::trace;
 
 #[derive(Clone, Debug, Default)]
 pub struct Client {
@@ -9,6 +9,7 @@ pub struct Client {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub struct JobListing {
     pub ID: String,
     pub ParentID: String,
@@ -60,7 +61,7 @@ impl Nomad {
                 Ok(buf) => serde_json::from_value(buf).expect("failed to decode response"),
                 Err(_) => return Err(String::from("failed to read response")),
             },
-            Err(resp) => return Err(resp.into_string().unwrap())
+            Err(resp) => return Err(resp.into_string().unwrap()),
         };
         return Ok(jobs);
     }
@@ -70,6 +71,6 @@ impl Nomad {
             Ok(buf) => serde_json::from_value(buf).expect("failed to decode response"),
             Err(_) => return Err("failed to read response"),
         };
-        return Ok(job)
+        Ok(job)
     }
 }
