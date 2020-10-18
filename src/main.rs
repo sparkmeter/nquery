@@ -36,6 +36,16 @@ struct Opt {
     job_name: String,
 }
 
+/// Get all jobs matching the supplied criteria
+///
+/// # Arguments
+///
+/// * `name_filter` - A string prefix that all job IDs must match
+/// * `status_filter` - If specified, all jobs must have a status equal to this
+/// * `job_type_filter` - If specified, all jobs must be of this type
+/// * `periodic_filter` - If specified, all jobs must be either periodic or not periodic
+/// * `parameterized_filter` - If specified, all jobs must be either parameterized or
+/// non-parameterized.
 fn get_jobs(
     name_filter: &str,
     status_filter: Option<String>,
@@ -77,6 +87,20 @@ fn get_jobs(
         .collect()
 }
 
+/// Build a ternary value from a combination of boolean values.
+///
+/// # Arguments
+///
+/// * `flag_tuple` - A tuple of boolean values, the first being the positive, and the second being
+/// the negative
+///
+/// # Examples
+///
+/// ```
+/// assert_eq!(Some(true), handle_negative_flags((true, false)))
+/// assert_eq!(None, handle_negative_flags((false, false)))
+/// assert_eq!(Some(false), handle_negative_flags((false, true)))
+/// ```
 fn handle_negative_flags(flag_tuple: (bool, bool)) -> Option<bool> {
     match flag_tuple {
         (false, false) => None,
@@ -86,6 +110,7 @@ fn handle_negative_flags(flag_tuple: (bool, bool)) -> Option<bool> {
     }
 }
 
+/// Run the thing!
 fn main() {
     env_logger::init();
     let cmd = Opt::from_args();
