@@ -1,4 +1,4 @@
-use jsonpath::Selector;
+extern crate jsonpath_lib as jsonpath;
 use log::trace;
 use std::collections::HashMap;
 use structopt::StructOpt;
@@ -86,14 +86,6 @@ fn handle_negative_flags(flag_tuple: (bool, bool)) -> Option<bool> {
     }
 }
 
-fn build_paths(fields: Vec<String>) -> HashMap<String, Selector> {
-    let paths: HashMap<String, Selector> = fields
-        .iter()
-        .map(|s| (String::from(s), Selector::new(&format!("$.{}", s)).unwrap()))
-        .collect();
-    paths
-}
-
 fn main() {
     env_logger::init();
     let cmd = Opt::from_args();
@@ -108,13 +100,18 @@ fn main() {
     );
     let mut flattened = serde_json::to_value(&jobs).unwrap();
     if !(&cmd.fields).is_empty() {
-        let paths = build_paths(cmd.fields);
+        let paths: HashMap<String, String> = cmd
+            .fields
+            .iter()
+            .map(|f| (String::from(f), format!("$.{}", f)))
+            .collect();
         let mut full_jobs: Vec<serde_json::Value> = Vec::new();
         for job in jobs {
             let mut job_view: serde_json::Map<String, serde_json::Value> = serde_json::Map::new();
             for (path, selector) in &paths {
                 let job_json = serde_json::to_value(&job).unwrap();
-                let matches: Vec<&serde_json::Value> = selector.find(&job_json).collect();
+                let matches: Vec<&serde_json::Value> =
+                    jsonpath::select(&job_json, selector).unwrap();
                 if !matches.is_empty() {
                     for matched in matches {
                         trace!("Match: {}, {}", path, matched);
