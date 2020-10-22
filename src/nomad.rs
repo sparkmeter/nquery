@@ -1,3 +1,4 @@
+use anyhow::{anyhow, Result};
 use log::trace;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -30,14 +31,26 @@ pub struct Job {
 }
 
 impl Client {
-    fn get(&self, resource: &str) -> Result<ureq::Response, ureq::Response> {
+    /// Issue an HTTP Get against the given resource.
+    ///
+    /// # Arguments
+    ///
+    /// * `resource` the path to the resource being fetched.
+    fn get(&self, resource: &str) -> Result<ureq::Response> {
         let url = format!("{}/v1/{}", self.address, resource);
         let resp = ureq::get(&url).call();
         trace!("Response <{}> [{}]", url, resp.status());
-        if resp.error() {
-            return Err(resp);
+        match resp.synthetic_error() {
+            Some(resp) => {
+                let msg = if resp.to_string().contains("Connection refused") {
+                    format!("Could not connect to server at {}", &self.address)
+                } else {
+                    format!("{}: {}", resp.status(), resp.to_string())
+                };
+                Err(anyhow!(msg))
+            }
+            None => Ok(resp),
         }
-        Ok(resp)
     }
 }
 
@@ -55,21 +68,27 @@ pub struct Nomad {
 }
 
 impl Nomad {
-    pub fn get_jobs(&self) -> Result<Vec<JobListing>, String> {
+    /// Get all jobs in the cluster.
+    pub fn get_jobs(&self) -> Result<Vec<JobListing>> {
         let jobs: Vec<JobListing> = match self.client.get("jobs") {
             Ok(resp) => match resp.into_json() {
                 Ok(buf) => serde_json::from_value(buf).expect("failed to decode response"),
-                Err(_) => return Err(String::from("failed to read response")),
+                Err(_) => return Err(anyhow!("failed to read response")),
             },
-            Err(resp) => return Err(resp.into_string().unwrap()),
+            Err(err) => return Err(err),
         };
         return Ok(jobs);
     }
 
-    pub fn get_job(&self, id: &str) -> Result<Job, &'static str> {
+    /// Get a job by its ID.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - the ID of the job to retrieve.
+    pub fn get_job(&self, id: &str) -> Result<Job> {
         let job: Job = match self.client.get(&format!("job/{}", id)).unwrap().into_json() {
             Ok(buf) => serde_json::from_value(buf).expect("failed to decode response"),
-            Err(_) => return Err("failed to read response"),
+            Err(_) => return Err(anyhow!("failed to read response")),
         };
         Ok(job)
     }

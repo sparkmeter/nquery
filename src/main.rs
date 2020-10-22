@@ -1,6 +1,9 @@
+use anyhow::Result;
+
 extern crate jsonpath_lib as jsonpath;
 use log::trace;
 use std::collections::HashMap;
+use std::process;
 use structopt::StructOpt;
 
 mod nomad;
@@ -52,11 +55,11 @@ fn get_jobs(
     job_type_filter: Option<String>,
     periodic_filter: Option<bool>,
     parameterized_filter: Option<bool>,
-) -> Vec<nomad::Job> {
+) -> Result<Vec<nomad::Job>> {
     let client = nomad::get_client();
     let server = nomad::Nomad { client };
-    let job_listing = server.get_jobs().unwrap();
-    job_listing
+    let job_listing = server.get_jobs()?;
+    Ok(job_listing
         .into_iter()
         .filter(|job| match periodic_filter {
             Some(is_periodic) => is_periodic == job.Periodic.unwrap_or(false),
@@ -84,7 +87,7 @@ fn get_jobs(
             trace!("Individual Job: {:#?}", job);
             job
         })
-        .collect()
+        .collect())
 }
 
 /// Build a ternary value from a combination of boolean values.
@@ -113,16 +116,23 @@ fn handle_negative_flags(flag_tuple: (bool, bool)) -> Option<bool> {
 /// Run the thing!
 fn main() {
     env_logger::init();
+    color_backtrace::install();
     let cmd = Opt::from_args();
     let periodic = handle_negative_flags((cmd.periodic, cmd.no_periodic));
     let parameterized = handle_negative_flags((cmd.parameterized, cmd.no_parameterized));
-    let jobs: Vec<nomad::Job> = get_jobs(
+    let jobs: Vec<nomad::Job> = match get_jobs(
         &cmd.job_name,
         cmd.status,
         cmd.job_type,
         periodic,
         parameterized,
-    );
+    ) {
+        Ok(found_jobs) => found_jobs,
+        Err(err) => {
+            eprintln!("{}", err.to_string());
+            process::exit(1);
+        }
+    };
     let mut flattened = serde_json::to_value(&jobs).unwrap();
     if !(&cmd.fields).is_empty() {
         let paths: HashMap<String, String> = cmd
