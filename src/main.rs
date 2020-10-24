@@ -11,30 +11,39 @@ mod nomad;
 #[derive(Debug, StructOpt)]
 #[structopt(name = "nquery")]
 struct Opt {
+    /// Return jobs with this status
     #[structopt(long)]
     status: Option<String>,
 
+    /// Return periodic jobs
     #[structopt(long, conflicts_with = "no_periodic")]
     periodic: bool,
 
+    /// Exclude periodic jobs
     #[structopt(long, conflicts_with = "periodic")]
     no_periodic: bool,
 
+    /// Return parameterized jobs
     #[structopt(long, conflicts_with = "no_parameterized")]
     parameterized: bool,
 
+    /// Exclude parameterized jobs
     #[structopt(long, conflicts_with = "parameterized")]
     no_parameterized: bool,
 
+    /// Pretty print the JSON output
     #[structopt(long)]
     pretty: bool,
 
+    /// Return jobs of this type
     #[structopt(long = "type")]
     job_type: Option<String>,
 
+    /// Include only these fields in the ouput
     #[structopt(short, long, number_of_values = 1)]
     fields: Vec<String>,
 
+    /// A prefix that the job name must match
     #[structopt(default_value = "")]
     job_name: String,
 }
@@ -147,11 +156,9 @@ fn main() {
                 let job_json = serde_json::to_value(&job).unwrap();
                 let matches: Vec<&serde_json::Value> =
                     jsonpath::select(&job_json, selector).unwrap();
-                if !matches.is_empty() {
-                    for matched in matches {
-                        trace!("Match: {}, {}", path, matched);
-                        job_view.insert(path.to_string(), matched.to_owned());
-                    }
+                for matched in matches {
+                    trace!("Match: {}, {}", path, matched);
+                    job_view.insert(path.to_string(), matched.to_owned());
                 }
             }
             full_jobs.push(serde_json::to_value(job_view).unwrap());
