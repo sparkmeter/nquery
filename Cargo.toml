@@ -7,7 +7,7 @@ description = "Query your Nomad clusters"
 homepage = "https://github.io/sparkmeter/nquery"
 repository = "https://github.com/sparkmeter/nquery"
 readme = "README.md"
-keywords = ["git", "gitlab", "github"]
+keywords = ["nomad", "hashicorp"]
 categories = ["command-line-utilities"]
 license = "MIT"
 
