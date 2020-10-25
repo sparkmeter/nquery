@@ -87,7 +87,7 @@ impl Nomad {
             },
             Err(err) => return Err(err),
         };
-        return Ok(jobs);
+        Ok(jobs)
     }
 
     /// Get a job by its ID.
