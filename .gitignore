@@ -1,3 +1,5 @@
+# Don't actually commit any nomad manifests
+*.nomad
 
 # Created by https://www.toptal.com/developers/gitignore/api/vim,linux,rust
 # Edit at https://www.toptal.com/developers/gitignore?templates=vim,linux,rust

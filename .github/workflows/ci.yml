@@ -16,9 +16,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { rust: stable,           os: ubuntu-latest }
-          - { rust: stable,           os: macos-latest }
-          - { rust: beta,             os: ubuntu-latest }
+          - rust: stable
+            os: ubuntu-latest
+          - rust: stable
+            os: macos-latest
+          - rust: beta
+            os: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: hecrj/setup-rust-action@v1
