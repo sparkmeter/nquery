@@ -144,11 +144,12 @@ fn main() {
     };
     let mut flattened = serde_json::to_value(&jobs).unwrap();
     if !(&cmd.fields).is_empty() {
-        let paths: HashMap<String, String> = cmd
+        let mut paths: HashMap<String, String> = cmd
             .fields
             .iter()
             .map(|f| (String::from(f), format!("$.{}", f)))
             .collect();
+        paths.insert("ID".into(), "$.ID".into());
         let mut full_jobs: Vec<serde_json::Value> = Vec::new();
         for job in jobs {
             let mut job_view: serde_json::Map<String, serde_json::Value> = serde_json::Map::new();
