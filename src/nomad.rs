@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Result};
 use log::trace;
+use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -69,8 +70,17 @@ pub struct Nomad {
 
 impl Nomad {
     /// Get all jobs in the cluster.
-    pub fn get_jobs(&self) -> Result<Vec<JobListing>> {
-        let jobs: Vec<JobListing> = match self.client.get("jobs") {
+    ///
+    /// # Arguments
+    ///
+    /// * `prefix` a string prefix which all the returned jobs must match
+    pub fn get_jobs(&self, prefix: &str) -> Result<Vec<JobListing>> {
+        let path = format!(
+            "{}?prefix={}",
+            "jobs",
+            utf8_percent_encode(prefix, NON_ALPHANUMERIC).to_string()
+        );
+        let jobs: Vec<JobListing> = match self.client.get(&path) {
             Ok(resp) => match resp.into_json() {
                 Ok(buf) => serde_json::from_value(buf).expect("failed to decode response"),
                 Err(_) => return Err(anyhow!("failed to read response")),

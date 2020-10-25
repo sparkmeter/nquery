@@ -22,3 +22,4 @@ ureq = { version = "1.5", features = ["json"] }
 env_logger = "0.7"
 log = "0.4"
 jsonpath_lib = "0.2.5"
+percent-encoding = "2.1"

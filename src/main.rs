@@ -67,7 +67,7 @@ fn get_jobs(
 ) -> Result<Vec<nomad::Job>> {
     let client = nomad::get_client();
     let server = nomad::Nomad { client };
-    let job_listing = server.get_jobs()?;
+    let job_listing = server.get_jobs(name_filter)?;
     Ok(job_listing
         .into_iter()
         .filter(|job| match periodic_filter {
