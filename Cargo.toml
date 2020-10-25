@@ -1,6 +1,6 @@
 [package]
 name = "nquery"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Aru Sahni <aru.sahni@sparkmeter.io>"]
 edition = "2018"
 description = "Query your Nomad clusters"
