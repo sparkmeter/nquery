@@ -1,5 +1,8 @@
 # nquery
-Query and explore jobs on your Nomad clusters
+Query and explore jobs on your Nomad clusters.
+
+The output is raw JSON, to facilitate integration with command line tooling, such
+as [`jq`](https://stedolan.github.io/jq/).
 
 ## Usage
 

@@ -9,7 +9,12 @@ use structopt::StructOpt;
 mod nomad;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "nquery")]
+#[structopt(name = "nquery", about = "Query and explore jobs on a Nomad cluster")]
+/// Query a Nomad cluster for jobs matching the provided parameters. The output can then be piped
+/// to tools, such as jq.
+///
+/// nquery utilizes the `NOMAD_ADDR` environment variable to locate the Nomad cluster. If one is
+/// not defined, it defaults to localhost:4646 (the Nomad default).
 struct Opt {
     /// Return jobs with this status
     #[structopt(long)]
