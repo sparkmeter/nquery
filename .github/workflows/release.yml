@@ -46,7 +46,7 @@ jobs:
       - name: Build project
         run: cargo build --release --locked
       - name: Create archive
-        run: tar czf ${{ matrix.asset_name }}.tar.gz target/release/${{ matrix.artifact_name }}
+        run: tar czf ${{ matrix.asset_name }}.tar.gz -C target/release/ ${{ matrix.artifact_name }}
       - name: Upload binary
         uses: actions/upload-release-asset@v1
         env:
