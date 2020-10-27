@@ -11,6 +11,11 @@ keywords = ["nomad", "hashicorp"]
 categories = ["command-line-utilities"]
 license = "MIT"
 
+[badges]
+is-it-maintained-issue-resolution = { repository = "sparkmeter/nquery" }
+is-it-maintained-open-issues = { repository = "sparkmeter/nquery" }
+maintenance = {status = "actively-developed"}
+
 [dependencies]
 color-backtrace = "0.4"
 anyhow = "1.0"
