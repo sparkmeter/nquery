@@ -12,6 +12,23 @@ pub struct Client {
 
 #[derive(Serialize, Deserialize, Debug)]
 #[allow(non_snake_case)]
+pub struct ParameterizedJob {
+    pub Payload: String,
+    pub MetaRequired: Option<Vec<String>>,
+    pub MetaOptional: Option<Vec<String>>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
+pub struct Periodic {
+    pub Enabled: bool,
+    pub Spec: String,
+    pub SpecType: String,
+    pub ProhibitOverlap: bool,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub struct JobListing {
     pub ID: String,
     pub ParentID: String,
@@ -23,9 +40,13 @@ pub struct JobListing {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+#[allow(non_snake_case)]
 pub struct Job {
     #[serde(flatten)]
     listing: JobListing,
+    // Annoyingly, these fields have different types in a fullly-defined Job object
+    pub ParameterizedJob: Option<ParameterizedJob>,
+    pub Periodic: Option<Periodic>,
 
     #[serde(flatten)]
     extra: HashMap<String, Value>,
@@ -97,7 +118,7 @@ impl Nomad {
     /// * `id` - the ID of the job to retrieve.
     pub fn get_job(&self, id: &str) -> Result<Job> {
         let job: Job = match self.client.get(&format!("job/{}", id)).unwrap().into_json() {
-            Ok(buf) => serde_json::from_value(buf).expect("failed to decode response"),
+            Ok(buf) => serde_json::from_value(buf)?,
             Err(_) => return Err(anyhow!("failed to read response")),
         };
         Ok(job)
