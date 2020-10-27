@@ -1,3 +1,6 @@
+[![Build](https://github.com/sparkmeter/nquery/workflows/CI/badge.svg)]
+[![Latest version](https://img.shields.io/crates/v/nquery.svg?style=flat)](https://crates.io/crates/nquery)]
+
 # nquery
 Query and explore jobs on your Nomad clusters.
 

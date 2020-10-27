@@ -76,6 +76,7 @@ impl Client {
     }
 }
 
+/// Get the Nomad client
 pub fn get_client() -> Client {
     Client {
         address: match std::env::var("NOMAD_ADDR") {
