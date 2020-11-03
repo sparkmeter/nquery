@@ -70,9 +70,8 @@ fn get_jobs(
     periodic_filter: Option<bool>,
     parameterized_filter: Option<bool>,
 ) -> Result<Vec<nomad::Job>> {
-    let client = nomad::get_client();
-    let server = nomad::Nomad { client };
-    let job_listing = server.get_jobs(name_filter)?;
+    let mut client = nomad::get_client();
+    let job_listing = nomad::get_jobs(&mut client, name_filter)?;
     Ok(job_listing
         .into_iter()
         .filter(|job| match periodic_filter {
@@ -96,7 +95,7 @@ fn get_jobs(
             Some(job_type) => job.Type.eq_ignore_ascii_case(&job_type),
             None => true,
         })
-        .map(|job| server.get_job(&job.ID).unwrap())
+        .map(|job| nomad::get_job(&mut client, &job.ID).unwrap())
         .map(|job| {
             trace!("Individual Job: {:#?}", job);
             job
@@ -110,14 +109,6 @@ fn get_jobs(
 ///
 /// * `flag_tuple` - A tuple of boolean values, the first being the positive, and the second being
 /// the negative
-///
-/// # Examples
-///
-/// ```
-/// assert_eq!(Some(true), handle_negative_flags((true, false)))
-/// assert_eq!(None, handle_negative_flags((false, false)))
-/// assert_eq!(Some(false), handle_negative_flags((false, true)))
-/// ```
 fn handle_negative_flags(flag_tuple: (bool, bool)) -> Option<bool> {
     match flag_tuple {
         (false, false) => None,
@@ -175,5 +166,23 @@ fn main() {
         println!("{}", serde_json::to_string_pretty(&flattened).unwrap());
     } else {
         println!("{}", serde_json::to_string(&flattened).unwrap());
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_handle_negative_flags_valid() {
+        assert_eq!(Some(true), handle_negative_flags((true, false)));
+        assert_eq!(None, handle_negative_flags((false, false)));
+        assert_eq!(Some(false), handle_negative_flags((false, true)));
+    }
+
+    #[test]
+    #[should_panic]
+    fn handle_negative_flags_invalid() {
+        handle_negative_flags((true, true));
     }
 }
