@@ -2,9 +2,9 @@
 [![Latest version](https://img.shields.io/crates/v/nquery.svg?style=flat)](https://crates.io/crates/nquery)
 
 # nquery
-Query and explore jobs on your Nomad clusters.
+Query and explore jobs on your Nomad clusters from the comfort of the command line.
 
-The output is raw JSON, to facilitate integration with command line tooling, such
+The output is raw JSON, to facilitate integration with tooling such
 as [`jq`](https://stedolan.github.io/jq/).
 
 ## Usage
@@ -47,6 +47,9 @@ $ nquery --pretty --parameterized -f Meta.data-source etl
     "Meta.data-source": "db-cluster-2",
   }
 ]
+
+# Count the number of ETL tasks
+$ nquery --parameterized -f Meta.data-source etl | jq '. | length'
 ```
 
 ## Installation
