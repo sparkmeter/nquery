@@ -17,7 +17,6 @@ is-it-maintained-open-issues = { repository = "sparkmeter/nquery" }
 maintenance = {status = "actively-developed"}
 
 [dependencies]
-color-backtrace = "0.4"
 anyhow = "1.0"
 structopt = "0.3"
 serde = "1.0"
@@ -28,3 +27,4 @@ env_logger = "0.7"
 log = "0.4"
 jsonpath_lib = "0.2.5"
 percent-encoding = "2.1"
+color-backtrace = "0.4"
