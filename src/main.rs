@@ -3,7 +3,7 @@ use anyhow::Result;
 extern crate jsonpath_lib as jsonpath;
 use log::trace;
 use std::collections::HashMap;
-use std::process;
+use std::{env, process};
 use structopt::StructOpt;
 
 mod nomad;
@@ -120,7 +120,9 @@ fn handle_negative_flags(flag_tuple: (bool, bool)) -> Option<bool> {
 
 /// Run the thing!
 fn main() {
-    env_logger::init();
+    let _ = env_logger::Builder::new()
+        .parse_filters(&env::var("NQUERY_LOG").unwrap_or_default())
+        .try_init();
     if cfg!(debug_assertions) {
         color_backtrace::install();
     }

@@ -58,3 +58,8 @@ $ nquery --parameterized -f Meta.data-source etl | jq '. | length'
 cargo install nquery
 ```
 
+
+## Debugging
+
+To get helpful debugging information, run nquery with the `NQUERY_LOG=nquery`
+environment variable set.
