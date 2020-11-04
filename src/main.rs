@@ -121,7 +121,9 @@ fn handle_negative_flags(flag_tuple: (bool, bool)) -> Option<bool> {
 /// Run the thing!
 fn main() {
     env_logger::init();
-    color_backtrace::install();
+    if cfg!(debug_assertions) {
+        color_backtrace::install();
+    }
     let cmd = Opt::from_args();
     let periodic = handle_negative_flags((cmd.periodic, cmd.no_periodic));
     let parameterized = handle_negative_flags((cmd.parameterized, cmd.no_parameterized));
