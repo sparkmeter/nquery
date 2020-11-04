@@ -28,3 +28,8 @@ log = "0.4"
 jsonpath_lib = "0.2.5"
 percent-encoding = "2.1"
 color-backtrace = "0.4"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
