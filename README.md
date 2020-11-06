@@ -54,6 +54,10 @@ $ nquery --parameterized -f Meta.data-source etl | jq '. | length'
 
 ## Installation
 
+[Download the latest binary for your platform from the releases page](https://github.com/sparkmeter/nquery/releases).
+
+or, with Cargo:
+
 ```bash
 cargo install nquery
 ```
