@@ -10,8 +10,8 @@ env:
 
 jobs:
   test:
-    name: test
-    runs-on: ubuntu-latest
+    name: Test ${{ matrix.rust }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -22,6 +22,8 @@ jobs:
             os: macos-latest
           - rust: beta
             os: ubuntu-latest
+          - rust: stable
+            os: windows-latest
     steps:
       - uses: actions/checkout@v2
       - uses: hecrj/setup-rust-action@v1
